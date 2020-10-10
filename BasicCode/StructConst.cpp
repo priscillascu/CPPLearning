@@ -11,7 +11,7 @@ struct StudentInfo
 };
 
 // 对于结构体，地址传递更优
-// 地址传递，只用传递一个地址，比较省空间
+// 地址传递，只用传递一个地址，比较省空间，4个字节
 // 值传递会复制一次结构体实参给形参，如果实参庞大，则会很占空间
 // 为了防止在函数中对结构体数据误操作，建议使用const struct
 void NamePrint(const StudentInfo *pStu1)  
