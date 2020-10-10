@@ -1,4 +1,9 @@
 # C++笔记
+*本笔记使用VS Code编写，使用插件为：*
+
+`Markdown All in One`
+
+`Markdown Preview Github Styling`
 ## 前言
 一些诸如for循环、while循环等简单的语法此处就不再赘述了，本笔记主要讲一些以前学习C++的时候没有注意到的一些细节，诸如指针、函数等。
 ## VS Code编译环境配置
