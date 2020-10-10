@@ -63,7 +63,19 @@ void BubbleSort(int *arr, int arrLength)
     }
 }
 ```
+即用指针遍历数组有两种方式，一种是把指针像数组一样用`[]`进行操作，还有一种则是`*`解引用，然后自增
+```
+for (int i = 0; i < sizeArr; ++i)
+{
+    cout << pArr[i] << endl;
+}
 
+for (int j = 0; j < sizeArr; ++j)
+{
+    cout << *pArr << endl;
+    pArr++;
+}
+```
 ## 函数
 函数需要有定义和声明，定义就是完整的把函数功能写出来，需要占用一些内存。
 ```
