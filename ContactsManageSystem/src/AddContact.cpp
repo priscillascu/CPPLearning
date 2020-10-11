@@ -4,7 +4,7 @@ void AddContact(ContactBuild *contact)  // 地址传递，修改实参
 {
     bool addFlag = 1;  // 循环添加标志位，1继续添加，0停止添加
     char addCmd;
-    
+
     while(addFlag)
     {
         int addNum;  // 本次添加通讯录的个数
@@ -23,7 +23,7 @@ void AddContact(ContactBuild *contact)  // 地址传递，修改实参
                 cin >> contact->peopleArray[add].name;
 
                 cout << "Sex, 1 for male, 2 for female : ";       
-                while(true)
+                while(true)  //  判断输入是否为1 or 2
                 {
                     int sexTemp;
                     cin >> sexTemp;
@@ -48,9 +48,9 @@ void AddContact(ContactBuild *contact)  // 地址传递，修改实参
         }
 
         cout << "Done!" << endl;
-        cout << "Continue add?   y/n" << endl;
+        cout << "Continue add?   Y/N" << endl;  // 是否循环添加
         cin >> addCmd;
-        addCmd == 'y' ? addFlag = 1 : addFlag = 0;  // 三目运算符根据输入字符判断是否继续添加
+        (addCmd == 'y' || addCmd == 'Y') ? addFlag = 1 : addFlag = 0;  // 三目运算符根据输入字符判断是否继续添加
         system("cls");   // 清屏
     }
     

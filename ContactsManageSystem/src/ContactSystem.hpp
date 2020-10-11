@@ -3,6 +3,7 @@
 
 #define MAX 1000
 #include <iostream>
+#include <string>
 using namespace std;
 
 struct peopleInfo  // 联系人结构体
