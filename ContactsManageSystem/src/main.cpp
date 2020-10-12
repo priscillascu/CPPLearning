@@ -3,6 +3,7 @@
 #include "AddContact.hpp"
 #include "ShowContact.hpp"
 #include "SearchAndDeleteContact.hpp"
+#include "ChangeContact.hpp"
 
 int main()
 {
@@ -58,8 +59,16 @@ int main()
 
 
             case 5:  // 5.Change contact
+            {
+                string changeName;
+                cout << "****  5.Change contact        ****" << endl;
+                cout << "Enter the name you want to change: " <<endl;
+                cin >> changeName;
 
+                ChangeContact(&contact1, changeName);
                 break;
+            }
+                
 
             case 6:  // 6.*Delete ALL contacts
 

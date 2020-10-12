@@ -2,7 +2,6 @@
 
 void ShowContact(ContactBuild *contact)
 {
-    cout << "****  2.Show all contacts     ****" << endl;
     char exitCmd;
     cout << "-----------------------------------------------------------" << endl;
     if(contact->addedNum == 0)
