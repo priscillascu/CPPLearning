@@ -363,3 +363,284 @@ private:  // private中的成员可以通过public设计一个接口来赋予权
 	int Num;  // 赋予只写权限
 };
 ```
+## 构造和析构函数
+对象的初始化和清除的工作是C++利用构造(Construct)和析构(Destruct)函数实现的，编译器会自动调用构造和析构函数，如果我们不写构造和析构，编译器也会自动帮我们写一个空实现的构造和析构函数。
+
+声明构造和析构函数非常简单，直接`类名()`和`~类名()`，可以直接在`public`中定义，也可以在类外声明，只不过需要加上定义域`类名::`，然后再在`public`中声明函数
+```
+class Person
+{
+private:
+    /* data */
+public:
+    Person(/* args */);  // 在公共权限声明构造和析构
+    ~Person();
+};
+// 构造函数，函数名与类一样，无返回值不需要写void，有参数可以重载，创建对象时自动调用一次构造函数
+// 如果不写，编译器也会自动生成，只不过是空函数了
+Person::Person(/* args */)
+{
+    cout << "Call for Constructed function" << endl;
+}
+// 析构函数名与类一样，前面加一个~，不可以有参数，不能重载，不需要写void
+Person::~Person()  
+{
+    cout << "Call for Destructor" << endl;
+}
+
+Person p1;  // 创建对象之后，会自动调用一次构造函数，不需要去手动调用，类释放时自动调用一次析构函数来清除对象
+```
+如果一个类A里面调用了另一个类B，则是先构造里面的类B，再构造外面的类A，析构的时候则是**先进后出**，先析构A，再析构B
+### 构造函数分类和调用
+根据构造函数的参数和类型可以分为
+- 无参构造，也是默认的构造函数，因为没有参数，所以不能重载
+- 有参构造，可以传入一些参数，因此可以重载
+- 拷贝构造，将一个对象的引用作为`const`传入
+
+其中无参构造和有参构造也被称为**普通构造**。如果用户定义了有参构造函数，则编译器不再提供无参构造，但是会提供一个默认的拷贝构造，即**此时只能使用有参调用和拷贝调用**；如果用户定义了拷贝构造，则编译器不会提供其他构造函数即**此时只能使用拷贝调用**。
+```
+class Person
+{
+private:
+    /* data */
+public:
+    Person();  // 构造函数可以重载
+    Person(int a);
+    Person(const Person &p);  // 拷贝构造
+    ~Person();
+};
+
+Person::Person()  // 无参构造，也是默认的情况
+{
+    cout << "Call for default construct function" << endl;
+}
+Person::Person(int a)  // 有参构造
+{
+    cout << "Call for construct function with parameter" << endl;
+}
+Person::Person(const Person &p)  // 拷贝构造，写法为参数用const 类名 对象引用，将会把传入的对象属性复制一份
+{
+    cout << "Call for Copy construct function" << endl;
+}
+
+Person::~Person()
+{
+    cout << "Call for Destruct function"  << endl;
+}
+```
+构造函数的**调用**按照写法可以分为3种
+- 括号法
+- 显式法
+- 隐式法
+
+```
+Person p1;  // 默认构造函数，即无参构造
+
+// 1.括号法
+// Person p1();  // 调用无参构造不要写()了，会被认为是函数声明
+Person p2(10);  // 括号法调用有参构造
+Person p3(p2);  // 传入一个对象，调用拷贝构造，还会复制一份p2属性给p3
+
+// 2.显式法
+Person p4 = Person(10);  // 直接调用有参构造
+Person p5 = Person(p2);  // 直接调用拷贝构造
+
+// 3.隐式法，把显式法省略了一些
+Person p6 = 10;  // 相当于Person p6 = Person(10);
+Person p7 = p2;  // 拷贝构造
+```
+需要注意使用无参构造时，不能写`Person p1();`，因为这样会被认为是函数声明
+
+可以通过构造函数**初始化列表**的形式，来为对象赋值，只需要在定义构造函数的时候，在函数名后面依次跟上对象属性赋值，然后将要传递进去的属性值，写为函数的参数传入
+```
+Person::Person(string name, int age): Name(name), Age(age)  // 定义了一个使用列表初始化对象的构造函数
+{
+    cout << "Call for list" << endl;
+}
+
+Person p2 = Person("Tom", 20);
+```
+### 拷贝构造注意事项
+拷贝构造会在以下三种情况被调用：
+- 使用一个已经创建好了的对象来初始化一个新对象
+```
+Person p1(20);  // 调用有参构造函数
+Person p2(p1);  // 调用拷贝构造函数
+```
+
+- 将对象以值传递的方式给函数参数
+```
+void CopyConstruct(Person p)  // 此时，p会被复制一份，调用了拷贝构造
+```
+
+- *这一项我实验失败了，将对象作为函数的局部变量，以值的方式返回
+```
+Person ReturnCopy()
+{
+    Person p1;
+    return p1;  // 以值的方式返回局部对象，会复制一份
+}
+```
+**浅拷贝：** 简单的复制拷贝操作，系统默认的拷贝构造也是浅拷贝
+
+**深拷贝：** 使用`new`在堆区开辟内存来存放拷贝的数据，要注意指针的应用
+```
+Person::Person(const Person &p)  // 深拷贝，创建一个新的堆区来存储拷贝的数据
+{
+    Age = new int(*p.Age);
+    Height = new int(*p.Height);
+    cout << "Call for Copy construct function" << endl;
+}
+```
+### 静态成员
+静态成员就是在类里的成员变量和成员函数前加上`static`，静态成员变量类似于将类里的变量赋值，但是在内存里只保存了一份变量值，所有的被这个类声明的对象都将共享这个变量，**类内声明，类外初始化**；静态成员函数也是在内存里只保存了一份，让所有被这个类创建的对象调用，注意，静态成员函数只能访问静态成员变量，但是非静态成员函数都可以访问。
+```
+class Person
+{
+private:
+    /* data */
+public:
+    Person(/* args */);
+    ~Person();
+    static void func1();  // 声明一个静态成员函数，通过类名调用可以直接修改类定义里的静态成员变量
+    static int Age;  // 静态成员变量，数据是共享的，可以被调用
+    int Num;  // 非静态变量，使用时需要先声明一个对象才能访问其所在的内存
+    void func2();  // 非静态成员函数，需要通过对象调用
+};
+
+int Person::Age;  // 静态成员类内定义，类外赋值
+
+Person::Person(/* args */)
+{
+}
+
+Person::~Person()
+{
+}
+
+void Person::func1()  // 在类外定义一个静态成员函数，此时不用声明static
+{
+    // Person::Num = 123;  // 非静态变量不能调用，因为没有声明类，函数不知道改变哪个内存
+    Person::Age = 20;  // 静态成员函数可以访问静态成员属性
+    cout << "Call for static function" << endl;
+}
+```
+## 对象模型
+**成员变量和成员函数分开存储**
+
+类内的成员变量和成员函数是分开存储的，也就是说，无论你类里定义了多少成员变量、成员函数，类定义的对象大小都只和类里的**非静态成员变量**有关，注意空类定义的对象大小为1
+```
+class PersonNonEmpty
+{
+private:
+    /* data */
+public:
+    int Name;  // 非静态成员变量
+    char Age;
+
+    static int Num;
+
+    void func1() {}
+    static void func2() {}
+    PersonNonEmpty(/* args */);
+    ~PersonNonEmpty();
+};
+
+PersonNonEmpty p2;  // 类定义的对象大小只与类内的非静态成员变量有关
+cout << "Size of object p2 is " << sizeof(p2) << endl;
+```
+此时，对象`p2`的大小只等于`int`加上`char`，和`static`成员变量，以及成员函数无关，即他们只用在内存中保存一份，用以对象调用，也就是说多个同类声明的对象会公用一块代码，这一块代码通过`this`指针来区分对象，谁调用，`this`就指向谁
+
+### this指针
+`this`指针不需要定义，直接使用即可，指向调用成员函数的对象，需要注意根据应用场景的不同，是否需要判断是否为空指针`this == NULL`，`this`指针还是一个指针常量，其指向不可修改，只能是指向调用成员函数的对象，不能手动修改为`NULL`等。
+
+用途有两种：
+- 形参与成员变量重名了，可以用`this`来区分
+- 在类的**非静态成员函数**中返回对象本身，可以直接`return *this`
+```
+class Person
+{
+private:
+    /* data */
+public:
+    int Age;
+    Person(int Age);
+    ~Person();
+};
+
+Person::Person(int Age)
+{
+    this->Age = Age;  // 当成员属性和传入的参数同名了，就需要使用this，否则名称冲突，结果错误
+}
+```
+**在返回对象本身的时候，要注意函数返回值是否需要引用**，可以认为返回值有`&`引用就可以直接修改对象的参数，而没有引用的话，则会创建一个匿名对象，会被析构，引起bug
+```
+// 不使用引用，直接返回一个对象，则会创建一个新对象，真正调用的对象只进行了一次加法
+// 后面的几次加法都是在接受返回值的新对象上进行的，因为是匿名对象，所以加法结束后全部析构
+// 形参用引用的方式可以省去复制实参，节约空间，可以改变实参
+Person Person::PersonAdd(Person &p)  
+{
+    this->Age += p.Age;  // 让调用这个函数的对象的Age属性加上传入的对象的age
+    return *this;  // 返回对象本体
+}
+
+// 用引用来接受返回的对象，即改变了实参的值，执行完之后对象不会被析构
+Person &Person::PersonAddRef(Person &p)
+{
+    this->Age += p.Age;
+    return *this;
+}
+
+int main()
+{
+    Person p1(10);
+    cout << "p1 age is " << p1.Age << endl;  // this将会指向p1
+
+    // 没有使用引用，则只进行了第一次的p2.PersonAdd(p1)
+    // 后面的.PersonAdd(p1)都是在上一次调用后返回的新对象的基础上进行
+    // 因为是匿名对象，所以结束后被析构，p2还是就是第一次调用的值
+    Person p2(10);
+    p2.PersonAdd(p1).PersonAdd(p1);
+    cout << "p2 age is " << p2.Age << endl;  // p2 = 20
+
+    // 使用引用，相当于直接修改了p3，中间不存在新对象
+    Person p3(10);
+    p3.PersonAddRef(p1).PersonAddRef(p1);
+    cout << "p3 age is " << p3.Age << endl;  // p3 = 30
+    return 0;
+}
+```
+### 常函数和常对象
+C++在类中声明一个常函数，只需要在函数的声明后面加一个`const`
+```
+class Person
+{
+private:
+    /* data */
+public:
+    int Age;
+    mutable int Num;  // 加上mutable(可变的)之后，可以在常函数中修改
+
+    Person(/* args */);
+    ~Person();
+
+    void ShowPerson();
+    void ShowConst() const;  // 常函数
+};
+
+void Person::ShowConst() const  // 常函数
+{
+    // Age = 100;  // 无法修改this指针的指向值
+    Num = 100; // 可以修改mutable变量
+}
+```
+`this`指针本来是一个指针`Person * const this`，然后被常函数的const修饰了，就将`this`指针定义成了`const Person * const this`，此时无法修改this指针的指向值。
+
+常对象则是一个被`const`修饰的对象，不能修改属性，也不能调用非常对象函数
+```
+const Person p1;  // 常对象
+p1.Num = 100;  // 常对象的mutable也可以修改，常对象只能调用常函数
+// p1.ShowPerson();  // 常对象不能调用非常函数
+p1.ShowConst();
+```
+**但是只要是`mutable`修饰的变量，就可以被常对象和常函数调用、修改**
