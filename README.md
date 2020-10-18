@@ -644,3 +644,61 @@ p1.Num = 100;  // 常对象的mutable也可以修改，常对象只能调用常�
 p1.ShowConst();
 ```
 **但是只要是`mutable`修饰的变量，就可以被常对象和常函数调用、修改**
+
+### 继承
+当多个类使用**同样的代码**时，可以通过继承的方式，减少代码量，但是不会减少内存，实际上子类还是会创建一下父类。
+
+C++允许一个类继承多个类，但是**不推荐**这样使用，因为可能会出现数据重复定义的**菱形问题**，继承的语法很简单：
+
+`class 子类 : 继承方式 父类1, 继承方式2 父类2`
+
+继承有3种方式，对应于三种权限，public，private，protected
+- 1.public继承，则父类的除private，public和protected权限原封不动继承
+- 2.protected继承，还是不能继承父类的private，但是其他权限全部继承，但是全部继承为protected
+- 3.private继承，还是不能继承父类的private，会将其他权限继承为private
+  
+继承其实把父类的所有属性，包括私有，复制给了子类，只不过编译器把私有属性隐藏了，因此继承的子类大小=子类自身成员属性+父类继承属性。继承创建的类，会**先构造父类，再构造子类，先析构子类，再析构父类**，先进后出。
+
+当子类和父类有同名成员时，子类的可以直接访问，父类的需要加一个作用域：对象.父类::成员，包括重载，也要加作用域。
+
+**菱形问题**又称菱形继承、钻石继承，指当两个子类继承了同一个父类，然后这两个子类又同时被另一个子类继承，存在重复定义，调用二义性
+```
+/*
+                   Base
+                    |
+            child1      child2
+                    |
+                    child3
+*/
+```
+这时，如果直接调用child3中的继承属性，则会报错，因为编译器不知道这个属性是来自child1还是child2，可以通过指明作用域来解决
+```
+// 直接继承，存在菱形问题
+class Child1 : public Base {};
+class Child2 : public Base {};
+class Child3 : public Child1, public Child2 {};
+
+Child3 p1;
+// p1.Age = 10;  // 指向不明，可能来自Child1和Child2
+p1.Child1::Age = 10;
+p1.Child2::Age = 20;
+cout << p1.Child1::Age << "\t" << p1.Child2::Age << endl;  // 用作用域区分
+```
+但是系统存储了两份同样含义的属性数据，这是多余的，对于一个对象来说，有一份属性数据就够了，这时就可以使用**虚继承**来解决：
+```
+// 菱形继承导致了数据有两份，资源浪费，使用虚继承解决，virtual
+class Child4 : virtual public Base {};
+class Child5 : virtual public Base {};
+class Child6 : public Child4, public Child5 {};
+
+Child6 p2;
+p2.Age = 30;
+cout << p2.Age << endl;
+```
+**虚继承**的原理很简单，可以通过`gdb`调试打印对象数据得知：
+```
+(gdb) p p2
+$1 = {<Child4> = {<Base> = {Age = 0}, _vptr.Child4 = 0x405628 <vtable for Child6+24>}, <Child5> = {
+    _vptr.Child5 = 0x405640 <vtable for Child6+48>}, <No data fields>}
+```
+虚继承是会创建一个vptr，指向vtable的某个偏移量，多个虚继承都只会指向一个vtable的偏移值，就只会创建一份数据。
